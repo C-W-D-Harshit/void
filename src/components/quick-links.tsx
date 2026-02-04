@@ -11,15 +11,41 @@ interface Link {
 }
 
 const defaultLinks: Link[] = [
-  { id: "1", title: "GitHub", url: "https://github.com", icon: "github" },
-  { id: "2", title: "Vercel", url: "https://vercel.com", icon: "vercel" },
-  { id: "3", title: "Linear", url: "https://linear.app", icon: "linear" },
+  {
+    id: "1",
+    title: "GitHub",
+    url: "https://github.com",
+    icon: "https://www.google.com/s2/favicons?domain=github.com&sz=64",
+  },
+  {
+    id: "2",
+    title: "Vercel",
+    url: "https://vercel.com",
+    icon: "https://www.google.com/s2/favicons?domain=vercel.com&sz=64",
+  },
+  {
+    id: "3",
+    title: "Linear",
+    url: "https://linear.app",
+    icon: "https://www.google.com/s2/favicons?domain=linear.app&sz=64",
+  },
 ];
 
 function getIconComponent(iconName: string | undefined) {
   const iconClass = "w-4 h-4";
   if (!iconName) {
     return <span className="w-4 h-4 rounded bg-foreground/20" />;
+  }
+  if (iconName.startsWith("http")) {
+    return (
+      <img
+        src={iconName}
+        alt=""
+        className="w-4 h-4 rounded-sm opacity-70 grayscale brightness-110 contrast-125"
+        loading="lazy"
+        referrerPolicy="no-referrer"
+      />
+    );
   }
   switch (iconName) {
     case "github":
@@ -68,11 +94,20 @@ export function QuickLinks() {
     if (!url.startsWith("http")) {
       url = `https://${url}`;
     }
+    let favicon = "";
+    try {
+      const hostname = new URL(url).hostname;
+      if (hostname) {
+        favicon = `https://www.google.com/s2/favicons?domain=${hostname}&sz=64`;
+      }
+    } catch {
+      favicon = "";
+    }
     const link: Link = {
       id: crypto.randomUUID(),
       title: newTitle.trim(),
       url,
-      icon: newTitle.trim().toLowerCase(),
+      icon: favicon || newTitle.trim().toLowerCase(),
     };
     setLinks((prev) => [...prev, link]);
     setNewTitle("");
