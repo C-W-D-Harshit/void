@@ -507,11 +507,57 @@ function BrowserTabsPanel({ ref }: { ref?: React.Ref<{ focus: () => void }> }) {
     window.open(tab.url, "_blank");
   };
 
-  const filteredTabs = tabs.filter(
-    (tab) =>
-      tab.title.toLowerCase().includes(search.toLowerCase()) ||
-      tab.url.toLowerCase().includes(search.toLowerCase()),
-  );
+  const normalize = (value: string) => value.toLowerCase();
+
+  const fuzzyScore = (text: string, input: string) => {
+    const t = normalize(text);
+    const q = normalize(input);
+    if (!q) return 0;
+    if (t.includes(q)) return 50 + q.length * 2;
+
+    let tIndex = 0;
+    let qIndex = 0;
+    let score = 0;
+    let consecutive = 0;
+    let lastMatch = -2;
+
+    while (tIndex < t.length && qIndex < q.length) {
+      if (t[tIndex] === q[qIndex]) {
+        score += 2 + consecutive * 3;
+        if (tIndex === 0) score += 3;
+        if (tIndex === lastMatch + 1) {
+          consecutive += 1;
+        } else {
+          consecutive = 1;
+        }
+        lastMatch = tIndex;
+        qIndex += 1;
+      }
+      tIndex += 1;
+    }
+
+    if (qIndex !== q.length) return 0;
+    return score;
+  };
+
+  const trimmedSearch = search.trim();
+  const filteredTabs = trimmedSearch
+    ? tabs
+        .map((tab) => {
+          const titleScore = fuzzyScore(tab.title, trimmedSearch);
+          const urlScore = fuzzyScore(tab.url, trimmedSearch);
+          return {
+            tab,
+            score: Math.max(titleScore * 2, urlScore),
+          };
+        })
+        .filter((entry) => entry.score > 0)
+        .sort((a, b) => {
+          if (b.score !== a.score) return b.score - a.score;
+          return 0;
+        })
+        .map((entry) => entry.tab)
+    : tabs;
 
   return (
     <div className="h-[280px] flex flex-col">
@@ -523,6 +569,11 @@ function BrowserTabsPanel({ ref }: { ref?: React.Ref<{ focus: () => void }> }) {
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && filteredTabs[0]) {
+              switchToTab(filteredTabs[0]);
+            }
+          }}
           placeholder="Search tabs..."
           className="flex-1 bg-transparent text-sm text-foreground/80 placeholder:text-foreground/25 focus:outline-none"
         />
@@ -543,11 +594,17 @@ function BrowserTabsPanel({ ref }: { ref?: React.Ref<{ focus: () => void }> }) {
       ) : (
         <ScrollArea className="flex-1">
           <div className="space-y-1 pr-4">
-            {filteredTabs.map((tab) => (
+            {filteredTabs.map((tab, index) => (
               <div
                 key={tab.id}
                 onClick={() => switchToTab(tab)}
-                className="group flex items-center gap-3 py-2 px-2 -mx-2 rounded cursor-pointer hover:bg-foreground/5 transition-colors"
+                className={cn(
+                  "group flex items-center gap-3 py-1.5 px-2 rounded-md cursor-pointer transition-colors",
+                  "hover:bg-foreground/5",
+                  trimmedSearch &&
+                    index === 0 &&
+                    "bg-foreground/10 text-foreground/90 ring-1 ring-foreground/15",
+                )}
               >
                 {tab.favicon ? (
                   <img
@@ -564,10 +621,10 @@ function BrowserTabsPanel({ ref }: { ref?: React.Ref<{ focus: () => void }> }) {
                 <span className="flex-1 text-sm text-foreground/70 group-hover:text-foreground/90 truncate">
                   {tab.title}
                 </span>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      closeTab(tab.id);
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    closeTab(tab.id);
                   }}
                   className="opacity-0 group-hover:opacity-100 text-foreground/25 hover:text-foreground/50 transition-all"
                 >
@@ -602,7 +659,7 @@ function MeetingsPanel() {
             href={meeting.meetLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="group flex items-center gap-3 py-2.5 px-3 -mx-3 rounded-lg hover:bg-foreground/5 transition-colors"
+            className="group flex items-center gap-3 py-1.5 px-2 rounded-md hover:bg-foreground/5 transition-colors"
           >
             <div className="w-8 h-8 rounded-lg bg-foreground/5 flex items-center justify-center group-hover:bg-foreground/10 transition-colors">
               <Video className="w-4 h-4 text-foreground/50" />
