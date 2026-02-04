@@ -52,6 +52,11 @@ export function UrlBar() {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      navigate();
+      return;
+    }
     if (e.key === "Escape") {
       setQuery("");
       inputRef.current?.blur();

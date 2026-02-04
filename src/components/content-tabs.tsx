@@ -73,9 +73,16 @@ const mockBrowserTabs: BrowserTab[] = [
   },
 ];
 
-export function ContentTabs() {
-  const [activeTab, setActiveTab] = React.useState("tasks");
-  const [previousTab, setPreviousTab] = React.useState("tasks");
+export function ContentTabs({
+  showTasks,
+  showTabs,
+}: {
+  showTasks: boolean;
+  showTabs: boolean;
+}) {
+  const initialTab = showTasks ? "tasks" : "tabs";
+  const [activeTab, setActiveTab] = React.useState(initialTab);
+  const [previousTab, setPreviousTab] = React.useState(initialTab);
   const [isInitialMount, setIsInitialMount] = React.useState(true);
   const [tabsCount, setTabsCount] = React.useState(0);
   const tabsListRef = React.useRef<HTMLDivElement>(null);
@@ -89,8 +96,8 @@ export function ContentTabs() {
   });
 
   const tabs = [
-    { value: "tasks", label: "Tasks" },
-    { value: "tabs", label: "Tabs" },
+    ...(showTasks ? [{ value: "tasks", label: "Tasks" }] : []),
+    ...(showTabs ? [{ value: "tabs", label: "Tabs" }] : []),
     // { value: "meetings", label: "Meetings" },
   ];
 
@@ -182,7 +189,7 @@ export function ContentTabs() {
   };
 
   React.useEffect(() => {
-    if (userSelectedRef.current) return;
+    if (userSelectedRef.current || !showTabs) return;
 
     const prevCount = lastTabsCountRef.current;
     lastTabsCountRef.current = tabsCount;
@@ -201,7 +208,18 @@ export function ContentTabs() {
         setTab(nextTab, false);
       }
     }
-  }, [activeTab, tabsCount]);
+  }, [activeTab, tabsCount, showTabs]);
+
+  React.useEffect(() => {
+    if (tabs.length === 0) return;
+    if (!tabs.find((tab) => tab.value === activeTab)) {
+      setTab(tabs[0].value, false);
+    }
+  }, [activeTab, tabs, showTasks, showTabs]);
+
+  if (tabs.length === 0) {
+    return null;
+  }
 
   return (
     <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
@@ -227,7 +245,8 @@ export function ContentTabs() {
         ))}
       </TabsList>
 
-      <TabsContent
+      {showTasks ? (
+        <TabsContent
         value="tasks"
         className={cn(
           "mt-4 animate-in fade-in-0 duration-300 ease-out",
@@ -238,7 +257,7 @@ export function ContentTabs() {
             direction === "left" &&
             "slide-in-from-left-4",
         )}
-      >
+        >
         <div
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
@@ -249,9 +268,11 @@ export function ContentTabs() {
         >
           <TasksPanel ref={taskInputRef} />
         </div>
-      </TabsContent>
+        </TabsContent>
+      ) : null}
 
-      <TabsContent
+      {showTabs ? (
+        <TabsContent
         value="tabs"
         className={cn(
           "mt-4 animate-in fade-in-0 duration-300 ease-out",
@@ -262,7 +283,7 @@ export function ContentTabs() {
             direction === "left" &&
             "slide-in-from-left-4",
         )}
-      >
+        >
         <div
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
@@ -276,7 +297,8 @@ export function ContentTabs() {
             onTabsCountChange={setTabsCount}
           />
         </div>
-      </TabsContent>
+        </TabsContent>
+      ) : null}
 
       <TabsContent
         value="meetings"
