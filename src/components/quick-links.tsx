@@ -80,6 +80,10 @@ export function QuickLinks() {
     setIsAdding(false);
   };
 
+  const removeLink = (id: string) => {
+    setLinks((prev) => prev.filter((link) => link.id !== id));
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       addLink();
@@ -95,16 +99,29 @@ export function QuickLinks() {
     <>
       <div className="flex items-center gap-6">
         {links.map((link) => (
-          <a
-            key={link.id}
-            href={link.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 text-foreground/40 hover:text-foreground/70 transition-colors text-sm"
-          >
-            {getIconComponent(link.icon)}
-            <span>{link.title}</span>
-          </a>
+          <div key={link.id} className="group flex items-center gap-2">
+            <a
+              href={link.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-foreground/40 hover:text-foreground/70 transition-colors text-sm"
+            >
+              {getIconComponent(link.icon)}
+              <span>{link.title}</span>
+            </a>
+            <button
+              type="button"
+              aria-label={`Remove ${link.title}`}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                removeLink(link.id);
+              }}
+              className="opacity-0 group-hover:opacity-100 text-foreground/25 hover:text-foreground/60 transition-colors cursor-pointer"
+            >
+              <X className="w-3.5 h-3.5" strokeWidth={2} />
+            </button>
+          </div>
         ))}
 
         <button
