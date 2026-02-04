@@ -77,9 +77,12 @@ export function ContentTabs() {
   const [activeTab, setActiveTab] = React.useState("tasks");
   const [previousTab, setPreviousTab] = React.useState("tasks");
   const [isInitialMount, setIsInitialMount] = React.useState(true);
+  const [tabsCount, setTabsCount] = React.useState(0);
   const tabsListRef = React.useRef<HTMLDivElement>(null);
   const taskInputRef = React.useRef<{ focus: () => void }>(null);
   const searchInputRef = React.useRef<{ focus: () => void }>(null);
+  const userSelectedRef = React.useRef(false);
+  const lastTabsCountRef = React.useRef(-1);
   const [indicatorStyle, setIndicatorStyle] = React.useState({
     left: 0,
     width: 0,
@@ -88,7 +91,7 @@ export function ContentTabs() {
   const tabs = [
     { value: "tasks", label: "Tasks" },
     { value: "tabs", label: "Tabs" },
-    { value: "meetings", label: "Meetings" },
+    // { value: "meetings", label: "Meetings" },
   ];
 
   const tabIndex = tabs.findIndex((tab) => tab.value === activeTab);
@@ -125,9 +128,16 @@ export function ContentTabs() {
     }, 100);
   }, [activeTab]);
 
-  const handleTabChange = (value: string) => {
+  const setTab = (value: string, isUserAction: boolean) => {
+    if (isUserAction) {
+      userSelectedRef.current = true;
+    }
     setPreviousTab(activeTab);
     setActiveTab(value);
+  };
+
+  const handleTabChange = (value: string) => {
+    setTab(value, true);
   };
 
   // Touch/trackpad swipe handling
@@ -170,6 +180,28 @@ export function ContentTabs() {
       }
     }
   };
+
+  React.useEffect(() => {
+    if (userSelectedRef.current) return;
+
+    const prevCount = lastTabsCountRef.current;
+    lastTabsCountRef.current = tabsCount;
+
+    if (tabsCount === 0) {
+      if (activeTab !== "tasks") {
+        setTab("tasks", false);
+      }
+      return;
+    }
+
+    if (prevCount <= 0 && tabsCount > 0) {
+      const preferTabs = Math.random() < 0.75;
+      const nextTab = preferTabs ? "tabs" : "tasks";
+      if (activeTab !== nextTab) {
+        setTab(nextTab, false);
+      }
+    }
+  }, [activeTab, tabsCount]);
 
   return (
     <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
@@ -239,7 +271,10 @@ export function ContentTabs() {
           onMouseMove={onTouchMove}
           onMouseUp={onTouchEnd}
         >
-          <BrowserTabsPanel ref={searchInputRef} />
+          <BrowserTabsPanel
+            ref={searchInputRef}
+            onTabsCountChange={setTabsCount}
+          />
         </div>
       </TabsContent>
 
@@ -436,7 +471,13 @@ function TaskItem({
   );
 }
 
-function BrowserTabsPanel({ ref }: { ref?: React.Ref<{ focus: () => void }> }) {
+function BrowserTabsPanel({
+  ref,
+  onTabsCountChange,
+}: {
+  ref?: React.Ref<{ focus: () => void }>;
+  onTabsCountChange?: (count: number) => void;
+}) {
   const canUseChromeTabs =
     typeof chrome !== "undefined" &&
     !!chrome.tabs &&
@@ -487,6 +528,10 @@ function BrowserTabsPanel({ ref }: { ref?: React.Ref<{ focus: () => void }> }) {
       chrome.tabs.onActivated.removeListener(handleUpdate);
     };
   }, [canUseChromeTabs, refreshTabs]);
+
+  React.useEffect(() => {
+    onTabsCountChange?.(tabs.length);
+  }, [onTabsCountChange, tabs.length]);
 
   const closeTab = (id: number) => {
     if (canUseChromeTabs) {
