@@ -23,10 +23,11 @@ interface Meeting {
 
 // Tab types
 interface BrowserTab {
-  id: string;
+  id: number;
   title: string;
   url: string;
   favicon?: string;
+  windowId?: number;
 }
 
 // Mock data
@@ -47,25 +48,25 @@ const mockMeetings: Meeting[] = [
 
 const mockBrowserTabs: BrowserTab[] = [
   {
-    id: "1",
+    id: 1,
     title: "GitHub - Your Repositories",
     url: "https://github.com",
     favicon: "https://github.com/favicon.ico",
   },
   {
-    id: "2",
+    id: 2,
     title: "Vercel Dashboard",
     url: "https://vercel.com",
     favicon: "https://vercel.com/favicon.ico",
   },
   {
-    id: "3",
+    id: 3,
     title: "Stack Overflow - React hooks",
     url: "https://stackoverflow.com",
     favicon: "https://stackoverflow.com/favicon.ico",
   },
   {
-    id: "4",
+    id: 4,
     title: "Figma - Project Design",
     url: "https://figma.com",
     favicon: "https://figma.com/favicon.ico",
@@ -436,7 +437,13 @@ function TaskItem({
 }
 
 function BrowserTabsPanel({ ref }: { ref?: React.Ref<{ focus: () => void }> }) {
-  const [tabs, setTabs] = useState<BrowserTab[]>(mockBrowserTabs);
+  const canUseChromeTabs =
+    typeof chrome !== "undefined" &&
+    !!chrome.tabs &&
+    typeof chrome.tabs.query === "function";
+  const [tabs, setTabs] = useState<BrowserTab[]>(
+    canUseChromeTabs ? [] : mockBrowserTabs,
+  );
   const [search, setSearch] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
 
@@ -446,12 +453,58 @@ function BrowserTabsPanel({ ref }: { ref?: React.Ref<{ focus: () => void }> }) {
     },
   }));
 
-  const closeTab = (id: string) => {
-    setTabs(tabs.filter((t) => t.id !== id));
+  const refreshTabs = React.useCallback(() => {
+    if (!canUseChromeTabs) return;
+    chrome.tabs.query({ currentWindow: true }, (result) => {
+      if (chrome.runtime?.lastError) return;
+      const mapped = result
+        .filter((tab) => typeof tab.id === "number" && !!tab.url)
+        .map((tab) => ({
+          id: tab.id as number,
+          title: tab.title || tab.url || "Untitled",
+          url: tab.url || "",
+          favicon: tab.favIconUrl,
+          windowId: tab.windowId,
+        }));
+      setTabs(mapped);
+    });
+  }, [canUseChromeTabs]);
+
+  React.useEffect(() => {
+    if (!canUseChromeTabs) return;
+    refreshTabs();
+
+    const handleUpdate = () => refreshTabs();
+    chrome.tabs.onCreated.addListener(handleUpdate);
+    chrome.tabs.onRemoved.addListener(handleUpdate);
+    chrome.tabs.onUpdated.addListener(handleUpdate);
+    chrome.tabs.onActivated.addListener(handleUpdate);
+
+    return () => {
+      chrome.tabs.onCreated.removeListener(handleUpdate);
+      chrome.tabs.onRemoved.removeListener(handleUpdate);
+      chrome.tabs.onUpdated.removeListener(handleUpdate);
+      chrome.tabs.onActivated.removeListener(handleUpdate);
+    };
+  }, [canUseChromeTabs, refreshTabs]);
+
+  const closeTab = (id: number) => {
+    if (canUseChromeTabs) {
+      chrome.tabs.remove(id);
+      return;
+    }
+    setTabs((prev) => prev.filter((t) => t.id !== id));
   };
 
-  const switchToTab = (url: string) => {
-    window.open(url, "_blank");
+  const switchToTab = (tab: BrowserTab) => {
+    if (canUseChromeTabs) {
+      chrome.tabs.update(tab.id, { active: true });
+      if (typeof tab.windowId === "number") {
+        chrome.windows.update(tab.windowId, { focused: true });
+      }
+      return;
+    }
+    window.open(tab.url, "_blank");
   };
 
   const filteredTabs = tabs.filter(
@@ -493,7 +546,7 @@ function BrowserTabsPanel({ ref }: { ref?: React.Ref<{ focus: () => void }> }) {
             {filteredTabs.map((tab) => (
               <div
                 key={tab.id}
-                onClick={() => switchToTab(tab.url)}
+                onClick={() => switchToTab(tab)}
                 className="group flex items-center gap-3 py-2 px-2 -mx-2 rounded cursor-pointer hover:bg-foreground/5 transition-colors"
               >
                 {tab.favicon ? (
@@ -511,10 +564,10 @@ function BrowserTabsPanel({ ref }: { ref?: React.Ref<{ focus: () => void }> }) {
                 <span className="flex-1 text-sm text-foreground/70 group-hover:text-foreground/90 truncate">
                   {tab.title}
                 </span>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    closeTab(tab.id);
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      closeTab(tab.id);
                   }}
                   className="opacity-0 group-hover:opacity-100 text-foreground/25 hover:text-foreground/50 transition-all"
                 >
