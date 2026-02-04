@@ -652,7 +652,7 @@ function MeetingsPanel() {
 
   return (
     <ScrollArea className="h-[280px]">
-      <div className="space-y-2 pr-4">
+      <div className="space-y-2 px-1">
         {meetings.map((meeting) => (
           <a
             key={meeting.id}
