@@ -187,7 +187,7 @@ export function ContentTabs() {
           <TabsTrigger
             key={tab.value}
             value={tab.value}
-            className="relative !bg-transparent !shadow-none !border-0 px-0 pb-2 text-xs uppercase tracking-widest text-foreground/40 data-[state=active]:text-foreground/80 rounded-none transition-colors duration-300 hover:text-foreground/60"
+            className="relative bg-transparent! !shadow-none !border-0 px-0 pb-2 text-xs uppercase tracking-widest text-foreground/40 data-[state=active]:text-foreground/80 rounded-none transition-colors duration-300 hover:text-foreground/60"
           >
             {tab.label}
           </TabsTrigger>
@@ -338,7 +338,7 @@ function TasksPanel({ ref }: { ref?: React.Ref<{ focus: () => void }> }) {
         >
           <span
             className={cn(
-              "flex-shrink-0 w-4 h-4 rounded border flex items-center justify-center transition-colors",
+              "shrink-0 w-4 h-4 rounded border flex items-center justify-center transition-colors",
               isFocused
                 ? "border-foreground/30"
                 : "border-foreground/15 group-hover:border-foreground/25",
@@ -402,7 +402,7 @@ function TaskItem({
     >
       <span
         className={cn(
-          "flex-shrink-0 w-4 h-4 rounded border flex items-center justify-center transition-all",
+          "shrink-0 w-4 h-4 rounded border flex items-center justify-center transition-all",
           task.completed
             ? "border-foreground/30 bg-foreground/10"
             : "border-foreground/25",
