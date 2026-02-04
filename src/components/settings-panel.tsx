@@ -7,6 +7,7 @@ export type AppSettings = {
   showTabs: boolean;
   showUrlBar: boolean;
   showQuickLinks: boolean;
+  showGridDot: boolean;
 };
 
 type Props = {
@@ -71,6 +72,11 @@ export function SettingsPanel({ value, onChange }: Props) {
             label="Quick Links"
             checked={value.showQuickLinks}
             onToggle={() => toggle("showQuickLinks")}
+          />
+          <ToggleRow
+            label="Grid + Dots"
+            checked={value.showGridDot}
+            onToggle={() => toggle("showGridDot")}
           />
         </div>
       ) : null}

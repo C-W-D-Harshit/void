@@ -12,6 +12,7 @@ function App() {
     showTabs: true,
     showUrlBar: true,
     showQuickLinks: true,
+    showGridDot: false,
   });
 
   useEffect(() => {
@@ -35,7 +36,11 @@ function App() {
   }, [settings]);
 
   return (
-    <main className="relative min-h-screen flex flex-col items-center justify-center px-6 py-12 font-sans antialiased">
+    <main
+      className={`relative min-h-screen flex flex-col items-center justify-center px-6 py-12 font-sans antialiased ${
+        settings.showGridDot ? "bg-grid-dot" : ""
+      }`}
+    >
       <SettingsPanel value={settings} onChange={setSettings} />
       <div
         className={`relative z-10 w-full max-w-md flex flex-col items-center transition-all duration-700 ease-out ${

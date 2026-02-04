@@ -88,3 +88,38 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  .bg-grid-dot {
+    position: relative;
+    isolation: isolate;
+    background-color: var(--background);
+  }
+  .bg-grid-dot::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: radial-gradient(
+      rgba(255, 255, 255, 0.12) 1px,
+      transparent 1px
+    );
+    background-size: 24px 24px;
+    background-position: center;
+    opacity: 0.6;
+    z-index: 0;
+  }
+  .bg-grid-dot::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(
+      75% 60% at 50% 40%,
+      transparent 0%,
+      rgba(0, 0, 0, 0.4) 65%,
+      rgba(0, 0, 0, 0.75) 100%
+    );
+    z-index: 0;
+  }
+}
