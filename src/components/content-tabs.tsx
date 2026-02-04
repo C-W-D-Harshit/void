@@ -75,6 +75,7 @@ const mockBrowserTabs: BrowserTab[] = [
 export function ContentTabs() {
   const [activeTab, setActiveTab] = React.useState("tasks");
   const [previousTab, setPreviousTab] = React.useState("tasks");
+  const [isInitialMount, setIsInitialMount] = React.useState(true);
   const tabsListRef = React.useRef<HTMLDivElement>(null);
   const taskInputRef = React.useRef<{ focus: () => void }>(null);
   const searchInputRef = React.useRef<{ focus: () => void }>(null);
@@ -108,7 +109,12 @@ export function ContentTabs() {
   }, [activeTab]);
 
   React.useEffect(() => {
-    // Focus the appropriate input based on active tab
+    // Focus the appropriate input based on active tab, but not on initial mount
+    if (isInitialMount) {
+      setIsInitialMount(false);
+      return;
+    }
+
     setTimeout(() => {
       if (activeTab === "tasks") {
         taskInputRef.current?.focus();
