@@ -62,8 +62,8 @@ function App() {
 
       {settings.showQuickLinks ? (
         <div
-          className={`fixed bottom-8 left-1/2 -translate-x-1/2 transition-all duration-700 delay-200 ${
-            mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
+          className={`fixed bottom-8 inset-x-0 z-40 flex justify-center transition-opacity duration-700 delay-200 ${
+            mounted ? "opacity-100" : "opacity-0"
           }`}
         >
           <QuickLinks />
