@@ -1,6 +1,7 @@
 import React from "react";
 import { Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTheme } from "./theme-provider";
 
 export type AppSettings = {
   showTasks: boolean;
@@ -18,6 +19,7 @@ type Props = {
 export function SettingsPanel({ value, onChange }: Props) {
   const [open, setOpen] = React.useState(false);
   const panelRef = React.useRef<HTMLDivElement>(null);
+  const { theme, setTheme } = useTheme();
 
   React.useEffect(() => {
     const handleClick = (e: MouseEvent) => {
@@ -52,7 +54,40 @@ export function SettingsPanel({ value, onChange }: Props) {
       </button>
 
       {open ? (
-        <div className="mt-3 w-48 rounded-xl border border-foreground/10 bg-background/80 backdrop-blur p-3 shadow-sm">
+        <div className="mt-3 w-56 rounded-xl border border-foreground/10 bg-background/80 backdrop-blur p-3 shadow-sm">
+          <div className="mb-2">
+            <span className="text-[11px] uppercase tracking-widest text-foreground/50">
+              Theme
+            </span>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              {(
+                [
+                  { label: "Dark", value: "dark" },
+                  { label: "Light", value: "light" },
+                  { label: "Notion Dark", value: "notion-dark" },
+                  { label: "Notion Light", value: "notion-light" },
+                ] as const
+              ).map((option) => {
+                const active = theme === option.value;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => setTheme(option.value)}
+                    className={cn(
+                      "rounded-md border px-2.5 py-1.5 text-[11px] uppercase tracking-widest transition",
+                      active
+                        ? "border-foreground/35 bg-foreground/15 text-foreground"
+                        : "border-foreground/15 bg-foreground/[0.03] text-foreground/60 hover:text-foreground",
+                    )}
+                    aria-pressed={active}
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
           <ToggleRow
             label="Tasks"
             checked={value.showTasks}
