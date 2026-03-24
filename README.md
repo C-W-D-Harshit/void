@@ -1,73 +1,83 @@
-# React + TypeScript + Vite
+# Void — New Tab
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A minimal Chrome extension that replaces your new tab page with a clean, distraction-free dashboard.
 
-Currently, two official plugins are available:
+![Void New Tab](https://img.shields.io/badge/Chrome_Extension-Manifest_v3-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Version](https://img.shields.io/badge/version-0.0.1-lightgrey)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features
 
-## React Compiler
+- **Live Clock** — Large digital clock with time-aware greeting and date
+- **URL Bar** — Search the web or navigate directly to URLs (`/` to focus)
+- **Task Manager** — Add, complete, and delete tasks; persisted to localStorage
+- **Browser Tabs** — View and switch between open tabs with fuzzy search
+- **Quick Links** — Customizable shortcut links with automatic favicon loading
+- **Themes** — Dark, Light, and Notion-inspired variants
+- **Settings** — Toggle each feature on/off from the settings panel
 
-The React Compiler is currently not compatible with SWC. See [this issue](https://github.com/vitejs/vite-plugin-react/issues/428) for tracking the progress.
+## Preview
 
-## Expanding the ESLint configuration
+A minimal new tab that stays out of your way — just a clock, a search bar, and the tools you actually use.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Installation
 
-```js
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
+### From Source
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+1. Clone the repo
+   ```bash
+   git clone https://github.com/c-w-d-harshit/void.git
+   cd void
+   ```
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+2. Install dependencies
+   ```bash
+   bun install
+   ```
+
+3. Build the extension
+   ```bash
+   bun run build
+   ```
+
+4. Load in Chrome
+   - Go to `chrome://extensions`
+   - Enable **Developer mode**
+   - Click **Load unpacked**
+   - Select the `dist` folder
+
+### Development
+
+```bash
+bun run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Then load the `dist` folder as an unpacked extension. Changes will hot-reload.
 
-```js
-// eslint.config.js
-import reactX from "eslint-plugin-react-x";
-import reactDom from "eslint-plugin-react-dom";
+## Tech Stack
 
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs["recommended-typescript"],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+- **React 19** + **TypeScript**
+- **Vite** + **@crxjs/vite-plugin** (Chrome extension bundling)
+- **Tailwind CSS v4**
+- **Radix UI** (accessible headless components)
+- **Motion** (animations)
+- **shadcn/ui** (component primitives)
+
+## Project Structure
+
 ```
+src/
+├── components/
+│   ├── clock.tsx          # Clock, greeting, date
+│   ├── url-bar.tsx        # Search / URL navigation
+│   ├── content-tabs.tsx   # Tasks, tabs, meetings panels
+│   ├── quick-links.tsx    # Customizable link shortcuts
+│   ├── settings-panel.tsx # Settings UI
+│   └── theme-provider.tsx # Theme context
+├── App.tsx                # Root component + settings state
+└── main.tsx               # Entry point
+```
+
+## License
+
+MIT — see [LICENSE](./LICENSE) for details.
